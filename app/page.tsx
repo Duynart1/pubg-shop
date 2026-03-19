@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserCircle, ArrowUp, Eye, Copy } from "lucide-react";
+import { UserCircle, ArrowUp, Eye, Copy, Crown } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import Link from "next/link";
 
 export default function Home() {
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -27,11 +28,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* HEADER */}
+      {/* HEADER - ĐÃ ĐỔI TÊN THẾ ANH PUBG */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-blue-600 font-bold text-xl">
-            <span className="text-2xl">💙</span> TRỌNG 2K8
+            <Crown className="w-7 h-7" />
+            <span>THẾ ANH PUBG</span>
           </div>
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <UserCircle className="w-7 h-7 text-gray-600" />
@@ -86,9 +88,14 @@ export default function Home() {
                       {acc.gia_ban ? (acc.gia_ban / 1000000).toFixed(0) : 0}m
                     </span>
                   </div>
-                  <button className="text-xs font-bold text-gray-700 bg-gray-100 px-3 py-2 rounded hover:bg-gray-200">
+                  
+                  <Link 
+                    href={`/acc/${acc.ma_acc}`}
+                    className="text-xs font-bold text-gray-700 bg-gray-100 px-3 py-2 rounded hover:bg-gray-200"
+                  >
                     CHI TIẾT
-                  </button>
+                  </Link>
+                  
                 </div>
               </div>
             </div>
