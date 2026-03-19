@@ -1,65 +1,97 @@
-import Image from "next/image";
+"use client";
+
+import { UserCircle, ArrowUp, Eye, Copy } from "lucide-react";
 
 export default function Home() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* HEADER */}
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-blue-600 font-bold text-xl">
+            <span className="text-2xl">💙</span>
+            TRỌNG 2K8
+          </div>
+          <button 
+            onClick={() => alert("Chức năng Admin đang được xây dựng!")}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            title="Đăng nhập Admin"
+          >
+            <UserCircle className="w-7 h-7 text-gray-600" />
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* DANH SÁCH ACC */}
+      <main className="max-w-7xl mx-auto px-4 mt-8">
+        <div className="flex items-center gap-3 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Danh sách Acc Bán</h1>
+          <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">241</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {/* Lặp ra 8 cái Thẻ Acc mẫu */}
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              {/* Ảnh bìa + Tem nổi bật */}
+              <div className="relative h-48 bg-gray-800 group cursor-pointer">
+                {/* Ảnh giả lập */}
+                <img 
+                  src={`https://picsum.photos/seed/${i + 10}/500/300`} 
+                  alt="Ảnh bìa Acc" 
+                  className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+                {/* Tem Nổi Bật */}
+                <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
+                  🔥 NỔI BẬT
+                </div>
+              </div>
+
+              {/* Thông tin Acc */}
+              <div className="p-3">
+                {/* Dòng 1: Mã + Nút Copy */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-gray-800">Mã: 8686{i}</span>
+                    <button className="flex items-center gap-1 text-[10px] text-blue-500 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100">
+                      <Copy className="w-3 h-3" /> Copy
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dòng 2: Ngày đăng + Lượt xem */}
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                  <span>🕒 19/03/26</span>
+                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> 3,302</span>
+                </div>
+
+                {/* Dòng 3: Giá + Nút Chi tiết */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div>
+                    <span className="text-gray-500 text-sm">Giá: </span>
+                    <span className="text-red-500 font-bold text-lg">210m</span>
+                  </div>
+                  <button className="text-xs font-bold text-gray-700 bg-gray-100 px-3 py-2 rounded hover:bg-gray-200">
+                    CHI TIẾT
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </main>
+
+      {/* NÚT LÊN ĐẦU TRANG */}
+      <button
+        onClick={scrollToTop}
+        className="fixed bottom-8 right-8 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-transform hover:-translate-y-1 z-50"
+      >
+        <ArrowUp className="w-6 h-6" />
+      </button>
     </div>
   );
 }
