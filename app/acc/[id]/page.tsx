@@ -63,7 +63,7 @@ export default function DetailPage() {
   const handleDelete = async () => {
     if (!isAdmin) return;
     
-    if (confirm(`⚠️ Boss Thế Anh Pubg ơi, Boss chắc chắn muốn XÓA VĨNH VIỄN acc mã số #${acc.ma_acc} này chứ?`)) {
+    if (confirm(`⚠️ Boss Thế Văn Pubg ơi, Boss chắc chắn muốn XÓA VĨNH VIỄN acc mã số #${acc.ma_acc} này chứ?`)) {
       setLoading(true);
       const { error } = await supabase.from("pubg_accounts").delete().eq("id", acc.id);
       if (error) {
@@ -81,7 +81,7 @@ export default function DetailPage() {
     const formattedPrice = acc.gia_ban.toLocaleString("vi-VN");
     const currentUrl = window.location.href; 
     
-    const message = `Chào Admin Thế Anh Pubg, mình muốn mua Acc PUBG này.
+    const message = `Chào Admin Thế Văn Pubg, mình muốn mua Acc PUBG này.
 Mã số: #${acc.ma_acc}
 Giá Bán: ${formattedPrice} VNĐ
 Link xem chi tiết: ${currentUrl}`;
@@ -160,11 +160,12 @@ Link xem chi tiết: ${currentUrl}`;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm sticky top-0 z-50 border-b">
+<header className="bg-white shadow-sm sticky top-0 z-50 border-b">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg tracking-tight">
-                <Crown className="w-6 h-6 fill-blue-600" /> THẾ ANH PUBG
-            </div>
+            {/* 🚀 PHÉP THUẬT: ĐÃ BỌC LOGO TRONG THẺ LINK */}
+            <Link href="/" className="flex items-center gap-2 text-blue-600 font-bold text-lg tracking-tight hover:scale-105 transition-transform cursor-pointer">
+                <Crown className="w-6 h-6 fill-blue-600" /> The Van PUBG
+            </Link>
             <div className="flex items-center gap-2.5">
                 {isAdmin && <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full">🛡️ ADMIN</span>}
                 <Link href="/" className="flex items-center gap-1.5 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition text-gray-700 text-sm font-semibold border">
@@ -193,7 +194,7 @@ Link xem chi tiết: ${currentUrl}`;
                 <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">BÁN</span>
                 {acc.noi_bat && <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">🔥 NỔI BẬT</span>}
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                    Mã số: {acc.ma_acc} {acc.tieu_de && `${acc.tieu_de}`}
+                    {acc.tieu_de}
                 </h1>
             </div>
 
@@ -211,7 +212,7 @@ Link xem chi tiết: ${currentUrl}`;
             </div>
 
             <button onClick={handleBuyNow} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg text-lg transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2">
-                <ShoppingCart className="w-5 h-5" /> MỨC NGAY (QUA ZALO)
+                <ShoppingCart className="w-5 h-5" /> MÚC NGAY (QUA ZALO)
             </button>
             
             <div className="mt-4 text-green-600 font-medium text-xs flex items-center gap-1.5">

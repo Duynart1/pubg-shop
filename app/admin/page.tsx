@@ -201,7 +201,7 @@ function AdminPageContent() {
 
       if (error) throw error;
 
-      alert(`✅ Boss Thế Anh Pubg ơi, ${editId ? "CẬP NHẬT" : "ĐĂNG"} Acc thành công rực rỡ!`);
+      alert(`✅ Boss Thế Văn Pubg ơi, ${editId ? "CẬP NHẬT" : "ĐĂNG"} Acc thành công rực rỡ!`);
       router.push("/");
 
     } catch (error: any) {

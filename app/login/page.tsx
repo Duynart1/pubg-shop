@@ -38,7 +38,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-extrabold flex items-center gap-2 justify-center tracking-tight">
             Đăng Nhập Admin
           </h1>
-          <p className="text-blue-200 mt-2 font-medium">Dành riêng cho Boss Thế Anh Pubg</p>
+          <p className="text-blue-200 mt-2 font-medium">Dành riêng cho Boss Thế Văn Pubg</p>
         </div>
 
         <form onSubmit={handleLogin} className="p-8 space-y-6">
