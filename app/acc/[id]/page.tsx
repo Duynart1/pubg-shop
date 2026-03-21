@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase"; 
-import { ArrowLeft, Crown, Clock, Eye, Trash2, Pencil, ShieldCheck, ShoppingCart, X, ZoomIn } from "lucide-react";
+import { ArrowLeft, Crown, Clock, Eye, Trash2, Pencil, ShieldCheck, ShoppingCart, X, ZoomIn, ArrowUp } from "lucide-react";
 import Link from "next/link";
 
 export default function DetailPage() {
@@ -14,13 +14,13 @@ export default function DetailPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
-  // --- 💥 STATE: KÍNH LÚP KÉO THẢ (DRAG & TOUCH) ---
+  // --- 💥 STATE: KÍNH LÚP KÉO THẢ ---
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 }); // Lưu vị trí khi kéo
+  const [position, setPosition] = useState({ x: 0, y: 0 }); 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [hasDragged, setHasDragged] = useState(false); // Phân biệt giữa click để zoom và kéo ảnh
+  const [hasDragged, setHasDragged] = useState(false); 
 
   const bossAdminEmail = "duynart3101@gmail.com"; 
   const isAdmin = user && user.email === bossAdminEmail;
@@ -99,7 +99,6 @@ Link xem chi tiết: ${currentUrl}`;
     }
   };
 
-  // --- LOGIC KÉO THẢ CHO KÍNH LÚP ---
   const openLightbox = (imgUrl: string) => {
     setLightboxImg(imgUrl);
     setIsZoomed(false); 
@@ -112,42 +111,40 @@ Link xem chi tiết: ${currentUrl}`;
     setPosition({ x: 0, y: 0 });
   };
 
-  // Bắt đầu kéo (Chuột / Chạm)
   const onPointerDown = (clientX: number, clientY: number) => {
     if (!isZoomed) return;
     setIsDragging(true);
-    setHasDragged(false); // Reset cờ kéo
+    setHasDragged(false); 
     setDragStart({ x: clientX - position.x, y: clientY - position.y });
   };
 
-  // Đang kéo (Chuột / Chạm)
   const onPointerMove = (clientX: number, clientY: number) => {
     if (!isDragging || !isZoomed) return;
-    setHasDragged(true); // Đánh dấu là đang kéo ảnh, không phải click zoom
+    setHasDragged(true); 
     setPosition({ x: clientX - dragStart.x, y: clientY - dragStart.y });
   };
 
-  // Thả tay ra (Chuột / Chạm)
   const onPointerUp = () => {
     setIsDragging(false);
   };
 
-  // Xử lý khi click thẳng vào ảnh (Zoom In / Zoom Out)
   const handleImageClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
-    
-    // Nếu vừa mới kéo xong thì không thực hiện lệnh Zoom (tránh lộn xộn)
     if (hasDragged) {
         setHasDragged(false);
         return;
     }
-
     if (isZoomed) {
         setIsZoomed(false);
-        setPosition({ x: 0, y: 0 }); // Zoom out thì ảnh về lại giữa màn
+        setPosition({ x: 0, y: 0 }); 
     } else {
         setIsZoomed(true);
     }
+  };
+
+  // --- LỆNH CUỘN LÊN ĐẦU TRANG ---
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
 
@@ -252,13 +249,20 @@ Link xem chi tiết: ${currentUrl}`;
         </div>
       </main>
 
-      {/* --- 💥 KÍNH LÚP KÉO THẢ (HỖ TRỢ MOBILE VÀ PC) --- */}
+      {/* --- NÚT CUỘN LÊN ĐẦU TRANG ĐÃ ĐƯỢC THÊM VÀO --- */}
+      <button 
+        onClick={scrollToTop} 
+        className="fixed bottom-8 right-8 p-3 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-colors z-40"
+      >
+        <ArrowUp className="w-6 h-6" />
+      </button>
+
+      {/* LIGHTBOX */}
       {lightboxImg && (
         <div 
           className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center overflow-hidden touch-none"
-          onClick={closeLightbox} // Bấm ra ngoài rìa đen thì đóng
+          onClick={closeLightbox}
         >
-          {/* Nút Đóng */}
           <button 
             onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
             className="absolute top-6 right-6 z-[10000] text-gray-300 hover:text-white bg-black/50 hover:bg-red-500 rounded-full p-2.5 transition backdrop-blur-sm"
@@ -266,37 +270,26 @@ Link xem chi tiết: ${currentUrl}`;
             <X className="w-6 h-6" />
           </button>
 
-          {/* Gợi ý cho khách */}
           {!isZoomed && (
              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/90 bg-black/60 px-5 py-2.5 rounded-full text-sm font-semibold pointer-events-none flex items-center gap-2 backdrop-blur-md shadow-xl border border-white/20 z-[10000]">
                 <ZoomIn className="w-5 h-5 text-blue-400" /> Bấm để phóng to và kéo thả
              </div>
           )}
 
-          {/* Vùng ảnh có gắn sự kiện Chuột (PC) và Cảm ứng (Mobile) */}
           <img 
             src={lightboxImg} 
             alt="Zoom Chi Tiết" 
-            draggable="false" // Không cho trình duyệt tự lấy ảnh
-            
-            // Xử lý Click / Chạm
+            draggable="false" 
             onClick={handleImageClick}
-            
-            // SỰ KIỆN CHUỘT (PC)
             onMouseDown={(e) => onPointerDown(e.clientX, e.clientY)}
             onMouseMove={(e) => onPointerMove(e.clientX, e.clientY)}
             onMouseUp={onPointerUp}
             onMouseLeave={onPointerUp}
-            
-            // SỰ KIỆN CẢM ỨNG (MOBILE)
             onTouchStart={(e) => onPointerDown(e.touches[0].clientX, e.touches[0].clientY)}
             onTouchMove={(e) => onPointerMove(e.touches[0].clientX, e.touches[0].clientY)}
             onTouchEnd={onPointerUp}
-
             style={{
-                // Phép thuật ở đây: Dịch chuyển (translate) và Phóng to (scale)
                 transform: `translate(${position.x}px, ${position.y}px) scale(${isZoomed ? 2.5 : 1})`,
-                // Bỏ transition nếu đang kéo để theo tay mượt nhất, chỉ bật khi click zoom
                 transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0, 0, 1)' 
             }}
             className={`max-w-[95vw] max-h-[95vh] object-contain shadow-2xl select-none ${
