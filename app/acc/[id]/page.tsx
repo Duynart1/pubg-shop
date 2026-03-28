@@ -1,304 +1,312 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { supabase } from "../../../lib/supabase"; 
-import { ArrowLeft, Crown, Clock, Eye, Trash2, Pencil, ShieldCheck, ShoppingCart, X, ZoomIn, ArrowUp } from "lucide-react";
+import { useEffect, useState, use, useRef, useCallback } from "react";
+// THÊM ICON CheckCircle2 VÀO DÒNG IMPORT
+import { UserCircle, ArrowUp, Eye, Copy, Pencil, Trash2, Crown, MessageCircle, ArrowLeft, KeySquare, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+// Thư viện Zoom "Trùm Cuối" (Mượt trên cả PC & Mobile)
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
-export default function DetailPage() {
+// TYPE CHUẨN DATABASE CỦA BOSS THẾ VĂN
+interface PubgAccount {
+  id: string;
+  created_at: string;
+  ma_acc: string;
+  tieu_de: string;
+  trang_thai: string;
+  gia_ban: number;
+  gia_thue_ngay: number;
+  anh_bia: string;
+  luot_xem: number;
+  noi_bat: boolean;
+  tags_do_hiem: string[];
+  anh_chi_tiet: string[];
+}
+
+export default function AccountDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const accountId = resolvedParams.id;
   const router = useRouter();
-  const params = useParams();
-  const id = params.id;
-  const [acc, setAcc] = useState<any>(null);
+  const [acc, setAcc] = useState<PubgAccount | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
 
-  // --- 💥 STATE: KÍNH LÚP KÉO THẢ ---
-  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 }); 
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [hasDragged, setHasDragged] = useState(false); 
+  // State Lightbox
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
 
-  const bossAdminEmail = "duynart3101@gmail.com"; 
-  const isAdmin = user && user.email === bossAdminEmail;
+  const bossAdminEmail = "duynart3101@gmail.com";
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const fetchAccDetail = async () => {
-      const { data, error } = await supabase
-        .from("pubg_accounts")
-        .select("*")
-        .eq("ma_acc", id)
-        .single();
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email === bossAdminEmail) {
+        setIsAdmin(true);
+      }
+    };
+    checkUser();
 
-      if (data) {
+    // RADAR TÌM KIẾM GOD-MODE
+    const fetchAccountData = async () => {
+      setLoading(true);
+      const searchTerm = accountId.trim();
+
+      let { data, error } = await supabase.from("pubg_accounts").select("*").eq("ma_acc", searchTerm).single();
+
+      if (error && !isNaN(Number(searchTerm))) {
+        const res = await supabase.from("pubg_accounts").select("*").eq("ma_acc", Number(searchTerm)).single();
+        data = res.data; error = res.error;
+      }
+
+      if (error && searchTerm.length > 20 && searchTerm.includes('-')) {
+        const res = await supabase.from("pubg_accounts").select("*").eq("id", searchTerm).single();
+        data = res.data; error = res.error;
+      }
+
+      if (error || !data) {
+        setAcc(null);
+      } else {
         setAcc(data);
-        
-        const { data: { session } } = await supabase.auth.getSession();
-        const currentUser = session?.user;
-        setUser(currentUser || null);
-        
-        const currentIsAdmin = currentUser && currentUser.email === bossAdminEmail;
-
-        if (!currentIsAdmin) {
-            const currentViews = data.luot_xem || 0;
-            await supabase
-              .from("pubg_accounts")
-              .update({ luot_xem: currentViews + 1 })
-              .eq("id", data.id);
-            
-            setAcc((prev: any) => ({...prev, luot_xem: currentViews + 1}));
+        if (!isAdmin) {
+          await supabase.from("pubg_accounts").update({ luot_xem: (data.luot_xem || 0) + 1 }).eq("id", data.id);
         }
       }
       setLoading(false);
     };
 
-    if (id) {
-        fetchAccDetail();
-    }
-  }, [id, user, isAdmin]); 
-
-  const handleDelete = async () => {
-    if (!isAdmin) return;
-    
-    if (confirm(`⚠️ Boss Thế Văn Pubg ơi, Boss chắc chắn muốn XÓA VĨNH VIỄN acc mã số #${acc.ma_acc} này chứ?`)) {
-      setLoading(true);
-      const { error } = await supabase.from("pubg_accounts").delete().eq("id", acc.id);
-      if (error) {
-        alert("❌ Xóa thất bại: " + error.message);
-        setLoading(false);
-      } else {
-        alert("✅ Đã xóa Acc thành công!");
-        router.push("/");
-      }
-    }
-  };
-
-  const handleBuyNow = async () => {
-    const bossZaloNumber = "0398938686"; 
-    const formattedPrice = acc.gia_ban.toLocaleString("vi-VN");
-    const currentUrl = window.location.href; 
-    
-    const message = `Chào Admin Thế Văn Pubg, mình muốn mua Acc PUBG này.
-Mã số: #${acc.ma_acc}
-Giá Bán: ${formattedPrice} VNĐ
-Link xem chi tiết: ${currentUrl}`;
-
-    try {
-      await navigator.clipboard.writeText(message);
-      alert("✅ Đã copy sẵn nội dung tin nhắn!\n\nVào Zalo bạn chỉ cần bấm DÁN (Ctrl + V) vào khung chat là xong nhé!");
-      const encodedMessage = encodeURIComponent(message);
-      const zaloUrl = `https://zalo.me/${bossZaloNumber}?text=${encodedMessage}`;
-      window.open(zaloUrl, '_blank');
-    } catch (err) {
-      const encodedMessage = encodeURIComponent(message);
-      const zaloUrl = `https://zalo.me/${bossZaloNumber}?text=${encodedMessage}`;
-      window.open(zaloUrl, '_blank');
-    }
-  };
-
-  const openLightbox = (imgUrl: string) => {
-    setLightboxImg(imgUrl);
-    setIsZoomed(false); 
-    setPosition({ x: 0, y: 0 });
-  };
-
-  const closeLightbox = () => {
-    setLightboxImg(null);
-    setIsZoomed(false);
-    setPosition({ x: 0, y: 0 });
-  };
-
-  const onPointerDown = (clientX: number, clientY: number) => {
-    if (!isZoomed) return;
-    setIsDragging(true);
-    setHasDragged(false); 
-    setDragStart({ x: clientX - position.x, y: clientY - position.y });
-  };
-
-  const onPointerMove = (clientX: number, clientY: number) => {
-    if (!isDragging || !isZoomed) return;
-    setHasDragged(true); 
-    setPosition({ x: clientX - dragStart.x, y: clientY - dragStart.y });
-  };
-
-  const onPointerUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleImageClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    if (hasDragged) {
-        setHasDragged(false);
-        return;
-    }
-    if (isZoomed) {
-        setIsZoomed(false);
-        setPosition({ x: 0, y: 0 }); 
-    } else {
-        setIsZoomed(true);
-    }
-  };
-
-  // --- LỆNH CUỘN LÊN ĐẦU TRANG ---
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+    fetchAccountData();
+  }, [accountId, isAdmin]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-xl font-bold text-gray-500 bg-gray-50">⏳ Đang hút dữ liệu Acc PUBG...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] w-full">
+        <div className="relative flex items-center justify-center mb-8 z-10">
+          <div className="absolute w-28 h-28 border-4 border-[#00a8ff] rounded-full border-t-transparent border-b-transparent animate-spin" style={{ animationDuration: '2s' }}></div>
+          <div className="absolute w-20 h-20 border-4 border-red-500 rounded-full border-l-transparent border-r-transparent animate-spin shadow-[0_0_15px_rgba(239,68,68,0.5)]" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+          <div className="w-10 h-10 text-[#00a8ff] animate-pulse flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="22" y1="12" x2="18" y2="12" /><line x1="6" y1="12" x2="2" y2="12" /><line x1="12" y1="6" x2="12" y2="2" /><line x1="12" y1="22" x2="12" y2="18" /></svg>
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold tracking-[0.2em] uppercase bg-gradient-to-r from-[#00a8ff] via-white to-[#00a8ff] text-transparent bg-clip-text animate-pulse">
+          Đang quét Acc...
+        </h2>
+      </div>
+    );
   }
 
   if (!acc) {
-    return <div className="min-h-screen flex items-center justify-center text-xl font-bold text-red-500 bg-gray-50">❌ Không tìm thấy Tài khoản này!</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-red-500 text-xl font-bold bg-[#0a0a0c] w-full pb-20 px-4 text-center">
+        <KeySquare className="w-16 h-16 mb-6 text-red-500" />
+        X Không tìm thấy Tài khoản này!
+        <p className="mt-2 text-zinc-500 text-sm font-medium">Vui lòng kiểm tra lại mã hoặc ID, hoặc quay lại Trang Chủ Boss ơi! 🎯</p>
+        <Link href="/" className="mt-8 px-6 py-3 bg-[#00a8ff] text-white rounded-lg font-semibold hover:bg-[#0097e6] transition-colors">
+          Quay lại Trang Chủ
+        </Link>
+      </div>
+    );
   }
 
   const priceInMillions = acc.gia_ban ? (acc.gia_ban / 1000000).toFixed(0) : 0;
 
+  // Gộp tất cả ảnh
+  const allImages = [acc.anh_bia, ...(acc.anh_chi_tiet || [])].filter(Boolean);
+
+  const handleMucNgay = () => {
+    const textToCopy = `Tôi muốn mua mã số ${acc.ma_acc} giá ${priceInMillions}m - Xem thêm tại: ${window.location.href}`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      window.open('https://zalo.me/0398938686', '_blank');
+    }).catch(err => {
+      console.error('Không thể copy: ', err);
+      window.open('https://zalo.me/0398938686', '_blank');
+    });
+  };
+
+  const handleCopyMa = () => {
+    navigator.clipboard.writeText(acc.ma_acc);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-<header className="bg-white shadow-sm sticky top-0 z-50 border-b">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            {/* 🚀 PHÉP THUẬT: ĐÃ BỌC LOGO TRONG THẺ LINK */}
-            <Link href="/" className="flex items-center gap-2 text-blue-600 font-bold text-lg tracking-tight hover:scale-105 transition-transform cursor-pointer">
-                <Crown className="w-6 h-6 fill-blue-600" /> The Van PUBG
-            </Link>
-            <div className="flex items-center gap-2.5">
-                {isAdmin && <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full">🛡️ ADMIN</span>}
-                <Link href="/" className="flex items-center gap-1.5 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition text-gray-700 text-sm font-semibold border">
-                    <ArrowLeft className="w-4 h-4" /> Quay lại
-                </Link>
-            </div>
+
+      {/* HEADER */}
+      <div className="bg-white shadow-sm sticky top-0 z-30 border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-[#00a8ff] transition-colors font-medium">
+            <ArrowLeft className="w-5 h-5" /> Về Trang Chủ
+          </Link>
+          <div className="font-bold text-lg text-gray-800">Mã: {acc.ma_acc}</div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-4 mt-8 flex flex-col gap-6">
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center w-full relative">
-            
-            {isAdmin && (
-                <div className="absolute top-4 right-4 flex items-center gap-1.5">
-                    <Link href={`/admin?edit=${acc.id}`} className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition">
-                        <Pencil className="w-4 h-4 text-gray-800" />
-                    </Link>
-                    <button onClick={handleDelete} className="p-2 bg-red-50 rounded hover:bg-red-100 transition">
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                    </button>
-                </div>
-            )}
+      <div className="max-w-4xl mx-auto px-4 py-8 w-full space-y-6">
 
-            <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
-                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">BÁN</span>
-                {acc.noi_bat && <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">🔥 NỔI BẬT</span>}
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                    {acc.tieu_de}
-                </h1>
-            </div>
-
-            <div className="flex items-center gap-2 text-gray-400 text-xs mt-2">
-                <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {acc.luot_xem || 0} xem</span>
-                <span>•</span>
-                <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {new Date(acc.created_at).toLocaleDateString("vi-VN")}</span>
-            </div>
-
-            <div className="mt-8 mb-6 flex items-baseline justify-center gap-2">
-                <span className="text-gray-600 text-lg">Giá Bán:</span>
-                <span className="text-4xl font-bold text-red-500 tracking-tight">
-                    {priceInMillions}m
+        {/* KHỐI THÔNG TIN TOP */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="space-y-3">
+              <h1 className="text-2xl font-bold text-gray-900">{acc.tieu_de || `Mã Số: ${acc.ma_acc}`}</h1>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-semibold border border-blue-100">
+                  Mã: {acc.ma_acc}
+                  <button onClick={handleCopyMa} className="hover:text-blue-900"><Copy className="w-3.5 h-3.5" /></button>
                 </span>
+                {acc.noi_bat && (
+                  <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-full text-sm font-bold border border-red-100">
+                    🔥 Nổi Bật
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5 text-gray-500 text-sm">
+                  <Eye className="w-4 h-4" /> {acc.luot_xem || 0} views
+                </span>
+              </div>
             </div>
 
-            <button onClick={handleBuyNow} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg text-lg transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2">
-                <ShoppingCart className="w-5 h-5" /> MÚC NGAY (QUA ZALO)
-            </button>
-            
-            <div className="mt-4 text-green-600 font-medium text-xs flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4" /> Giao dịch tự động hoặc trung gian uy tín 100%
-            </div>
-        </div>
-
-        <div className="flex flex-col gap-3 w-full">
-          <div 
-            onClick={() => openLightbox(acc.anh_bia)}
-            className="w-full bg-gray-100 rounded-xl overflow-hidden shadow-sm border border-gray-200 flex items-center justify-center cursor-pointer hover:opacity-90 transition group relative"
-          >
-            <img src={acc.anh_bia} alt="Ảnh bìa chính" className="w-full h-auto object-cover block" />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                <ZoomIn className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+            <div className="flex flex-col items-end">
+              <p className="text-sm text-gray-500 mb-1 font-medium">Giá Bán:</p>
+              <div className="text-4xl font-bold text-red-500 tracking-tight">{priceInMillions}<span className="text-3xl">m</span></div>
             </div>
           </div>
-          
-          {acc.anh_chi_tiet && acc.anh_chi_tiet.length > 0 && (
-              <div className="flex flex-col gap-3">
-                {acc.anh_chi_tiet.map((imgUrl: string, index: number) => (
-                  <div 
-                    key={index} 
-                    onClick={() => openLightbox(imgUrl)}
-                    className="w-full bg-gray-100 rounded-xl overflow-hidden shadow-sm border border-gray-200 flex items-center justify-center cursor-pointer hover:opacity-90 transition group relative"
-                  >
-                    <img src={imgUrl} alt={`Ảnh chi tiết ${index + 1}`} className="w-full h-auto object-cover block" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                        <ZoomIn className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-          )}
-        </div>
-      </main>
 
-      {/* --- NÚT CUỘN LÊN ĐẦU TRANG ĐÃ ĐƯỢC THÊM VÀO --- */}
-      <button 
-        onClick={scrollToTop} 
-        className="fixed bottom-8 right-8 p-3 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-colors z-40"
-      >
-        <ArrowUp className="w-6 h-6" />
-      </button>
-
-      {/* LIGHTBOX */}
-      {lightboxImg && (
-        <div 
-          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center overflow-hidden touch-none"
-          onClick={closeLightbox}
-        >
-          <button 
-            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
-            className="absolute top-6 right-6 z-[10000] text-gray-300 hover:text-white bg-black/50 hover:bg-red-500 rounded-full p-2.5 transition backdrop-blur-sm"
+          <button
+            onClick={handleMucNgay}
+            className="mt-6 w-full py-4 rounded-xl text-white font-bold text-lg uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-300 bg-gradient-to-r from-[#00a8ff] via-[#0097e6] to-[#00a8ff] bg-[length:200%_auto] animate-[shimmer_2s_linear_infinite]"
           >
-            <X className="w-6 h-6" />
+            <MessageCircle className="w-6 h-6 animate-pulse" />
+            Múc Ngay (Qua Zalo)
           </button>
 
-          {!isZoomed && (
-             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/90 bg-black/60 px-5 py-2.5 rounded-full text-sm font-semibold pointer-events-none flex items-center gap-2 backdrop-blur-md shadow-xl border border-white/20 z-[10000]">
-                <ZoomIn className="w-5 h-5 text-blue-400" /> Bấm để phóng to và kéo thả
-             </div>
-          )}
+          {/* THAY THẾ DÒNG CHÚ THÍCH CŨ BẰNG ĐOẠN CODE UY TÍN NÀY (Có tích xanh, chữ xanh) */}
+          <div className="flex items-center justify-center gap-2 mt-2 text-green-600 font-medium text-xs">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Giao dịch tự động hoặc trung gian uy tín 100%</span>
+          </div>
 
-          <img 
-            src={lightboxImg} 
-            alt="Zoom Chi Tiết" 
-            draggable="false" 
-            onClick={handleImageClick}
-            onMouseDown={(e) => onPointerDown(e.clientX, e.clientY)}
-            onMouseMove={(e) => onPointerMove(e.clientX, e.clientY)}
-            onMouseUp={onPointerUp}
-            onMouseLeave={onPointerUp}
-            onTouchStart={(e) => onPointerDown(e.touches[0].clientX, e.touches[0].clientY)}
-            onTouchMove={(e) => onPointerMove(e.touches[0].clientX, e.touches[0].clientY)}
-            onTouchEnd={onPointerUp}
-            style={{
-                transform: `translate(${position.x}px, ${position.y}px) scale(${isZoomed ? 2.5 : 1})`,
-                transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0, 0, 1)' 
-            }}
-            className={`max-w-[95vw] max-h-[95vh] object-contain shadow-2xl select-none ${
-              !isZoomed ? "cursor-zoom-in" : isDragging ? "cursor-grabbing" : "cursor-grab"
-            }`}
-          />
+        </div>
+
+        {/* ẢNH BÌA TO */}
+        {acc.anh_bia && (
+          <div
+            className="w-full rounded-2xl overflow-hidden shadow-md cursor-pointer border border-gray-100 bg-white"
+            onClick={() => { setZoomImage(acc.anh_bia); setCurrentImageIndex(0); }}
+          >
+            <img src={acc.anh_bia} alt="Cover" className="w-full h-auto object-contain" />
+          </div>
+        )}
+
+        {/* DÀN ẢNH CHI TIẾT */}
+        {acc.anh_chi_tiet && acc.anh_chi_tiet.length > 0 && (
+          <div className="space-y-4 pt-4">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-6 w-1 bg-[#00a8ff] rounded-full"></div>
+              <h2 className="text-xl font-bold text-gray-800">Ảnh Chi Tiết ({acc.anh_chi_tiet.length})</h2>
+            </div>
+
+            <div className="space-y-6">
+              {acc.anh_chi_tiet.map((img, index) => (
+                <div
+                  key={index}
+                  className="w-full rounded-2xl overflow-hidden shadow-sm cursor-pointer border border-gray-100 bg-white"
+                  onClick={() => { setZoomImage(img); setCurrentImageIndex(index + 1); }}
+                >
+                  <img src={img} alt={`Detail ${index + 1}`} className="w-full h-auto object-contain" loading="lazy" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* --- LIGHTBOX KÍNH LÚP CINEMATIC PRO MAX (Zoom tới x10) --- */}
+      {zoomImage && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center">
+
+          {/* Header Lightbox */}
+          <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-[110] bg-gradient-to-b from-black/60 to-transparent">
+            <div className="text-white font-medium bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-md text-sm">
+              Ảnh {currentImageIndex + 1} / {allImages.length}
+            </div>
+            <button
+              onClick={() => setZoomImage(null)}
+              className="text-white bg-white/10 hover:bg-red-500 px-4 py-1.5 rounded-full font-bold backdrop-blur-md transition-colors text-sm"
+            >
+              Đóng (X)
+            </button>
+          </div>
+
+          {/* TRÙM CUỐI ZOOM PAN PINCH (Zoom tới x10) */}
+          <div className="w-[100vw] h-[100vh] flex items-center justify-center overflow-hidden">
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={10} // Phóng to X10 soi lỗ chân lông
+              centerOnInit={true}
+              wheel={{ step: 0.15 }} // Lăn chuột mượt
+              doubleClick={{ step: 2 }} // Nháy đúp phóng to 2x
+            >
+              {({ resetTransform }) => (
+                <>
+                  {/* Nút Reset Zoom */}
+                  <button
+                    onClick={() => resetTransform()}
+                    className="absolute top-20 right-4 text-white bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md transition-colors z-[110]"
+                  >
+                    Reset Zoom
+                  </button>
+
+                  <TransformComponent wrapperClass="!w-screen !h-screen" contentClass="!w-screen !h-screen flex items-center justify-center">
+                    <img
+                      src={zoomImage}
+                      alt="Zoomed"
+                      className="max-w-[100vw] max-h-[100vh] object-contain cursor-grab active:cursor-grabbing select-none"
+                    />
+                  </TransformComponent>
+
+                  {/* Nút điều hướng */}
+                  {allImages.length > 1 && (
+                    <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-[110]">
+                      <button
+                        className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-colors disabled:opacity-30 font-bold"
+                        disabled={currentImageIndex === 0}
+                        onClick={() => {
+                          resetTransform();
+                          setCurrentImageIndex(prev => prev - 1);
+                          setZoomImage(allImages[currentImageIndex - 1]);
+                        }}
+                      >
+                        ← Ảnh trước
+                      </button>
+                      <button
+                        className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-colors disabled:opacity-30 font-bold"
+                        disabled={currentImageIndex === allImages.length - 1}
+                        onClick={() => {
+                          resetTransform();
+                          setCurrentImageIndex(prev => prev + 1);
+                          setZoomImage(allImages[currentImageIndex + 1]);
+                        }}
+                      >
+                        Ảnh tiếp →
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </TransformWrapper>
+          </div>
         </div>
       )}
+
+      {/* NÚT LÊN ĐẦU TRANG */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-6 right-6 p-4 bg-gray-900/80 hover:bg-[#00a8ff] text-white rounded-full shadow-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 z-40 group"
+      >
+        <ArrowUp className="w-6 h-6 group-hover:animate-bounce" />
+      </button>
 
     </div>
   );

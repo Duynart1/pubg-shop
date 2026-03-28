@@ -1,53 +1,35 @@
 import React from 'react';
+import { Crosshair } from 'lucide-react';
 
-export default function Loading() {
-    // Tạo một mảng 8 phần tử ảo để map ra 8 khung xương (skeleton cards)
-    const skeletonCards = Array(8).fill(null);
-
+export default function LoadingGaming() {
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8 w-full">
-            {/* Tiêu đề Search/Header Skeleton xịn xò (nếu cần) */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
-                <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse"></div>
-                <div className="h-12 w-full sm:w-96 bg-gray-200 rounded-full animate-pulse shadow-sm"></div>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] w-full bg-[#0a0a0c] rounded-2xl border border-zinc-800 shadow-[0_0_40px_rgba(0,168,255,0.08)] my-8 relative overflow-hidden">
+
+            {/* Hiệu ứng tia sáng nền lướt qua (giống radar) */}
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,rgba(0,168,255,0.4)_0%,transparent_70%)] animate-pulse"></div>
+
+            {/* Cụm Vòng bo ngắm bắn */}
+            <div className="relative flex items-center justify-center mb-8 z-10">
+                {/* Vòng ngoài xoay thuận - Màu xanh The Van */}
+                <div className="absolute w-28 h-28 border-4 border-[#00a8ff] rounded-full border-t-transparent border-b-transparent animate-spin" style={{ animationDuration: '2s' }}></div>
+
+                {/* Vòng trong xoay ngược - Màu đỏ cảnh báo cực ngầu */}
+                <div className="absolute w-20 h-20 border-4 border-red-500 rounded-full border-l-transparent border-r-transparent animate-spin shadow-[0_0_15px_rgba(239,68,68,0.5)]" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+
+                {/* Tâm ngắm Lucide React ở giữa chớp nháy */}
+                <Crosshair className="w-10 h-10 text-[#00a8ff] animate-pulse" />
             </div>
 
-            {/* Grid hiển thị Khung xương tỏa sáng */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {skeletonCards.map((_, index) => (
-                    <div
-                        key={index}
-                        className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col"
-                    >
-                        {/* Khung ảnh cover (chuẩn tỷ lệ aspect-video giống hệt card thật) */}
-                        <div className="w-full aspect-video bg-slate-200 animate-pulse"></div>
-
-                        {/* Khung nội dung */}
-                        <div className="p-4 flex-1 flex flex-col space-y-4">
-                            {/* Cụm Mã Acc & Tag */}
-                            <div className="flex justify-between items-center">
-                                <div className="h-5 w-1/3 bg-slate-200 rounded animate-pulse"></div>
-                                <div className="h-5 w-1/4 bg-slate-200 rounded-full animate-pulse"></div>
-                            </div>
-
-                            {/* Tên Acc / Vũ khí */}
-                            <div className="space-y-2">
-                                <div className="h-4 w-full bg-slate-200 rounded animate-pulse"></div>
-                                <div className="h-4 w-5/6 bg-slate-200 rounded animate-pulse"></div>
-                            </div>
-
-                            {/* Dải phân cách */}
-                            <div className="h-px w-full bg-slate-100 my-2"></div>
-
-                            {/* Khu vực Giá & Nút múc ngay */}
-                            <div className="flex justify-between items-center mt-auto pt-2">
-                                <div className="h-8 w-2/5 bg-slate-300 rounded animate-pulse"></div>
-                                <div className="h-10 w-1/3 bg-blue-100 rounded-lg animate-pulse"></div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+            {/* Chữ text Gaming phong cách Hologram */}
+            <div className="z-10 flex flex-col items-center">
+                <h2 className="text-2xl font-bold tracking-[0.2em] uppercase bg-gradient-to-r from-[#00a8ff] via-white to-[#00a8ff] text-transparent bg-clip-text animate-pulse">
+                    Đang quét Radar...
+                </h2>
+                <p className="mt-3 text-zinc-400 text-sm animate-bounce tracking-wide font-medium">
+                    Đang dò tìm Acc VIP cho Boss... 🎯
+                </p>
             </div>
+
         </div>
     );
 }
