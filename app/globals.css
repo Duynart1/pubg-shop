@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+/* ĐÂY LÀ DÒNG ÉP BUỘC TRƯỢT MƯỢT MÀ 100% TRÊN MỌI MẶT TRẬN */
+html {
+  scroll-behavior: smooth !important;
+}
 
 :root {
   --background: #ffffff;
