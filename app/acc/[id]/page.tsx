@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from "react";
-import { UserCircle, ArrowUp, Eye, Copy, MessageCircle, ArrowLeft, KeySquare, CheckCircle2 } from "lucide-react";
+import { UserCircle, ArrowUp, Eye, Copy, MessageCircle, ArrowLeft, KeySquare, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,16 +34,23 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
 
   const bossAdminEmail = "duynart3101@gmail.com";
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    let currentUserIsAdmin = false;
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.email === bossAdminEmail) setIsAdmin(true);
+      if (session?.user?.email === bossAdminEmail) {
+        setIsAdmin(true);
+        currentUserIsAdmin = true;
+      }
     };
-    checkUser();
 
     const fetchAccountData = async () => {
       setLoading(true);
+      await checkUser();
+
       const searchTerm = accountId.trim();
 
       let { data, error } = await supabase.from("pubg_accounts").select("*").eq("ma_acc", searchTerm).single();
@@ -52,10 +59,13 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         data = res.data; error = res.error;
       }
 
-      if (error || !data) setAcc(null);
-      else {
+      if (error || !data) {
+        setAcc(null);
+      } else {
         setAcc(data);
-        if (!isAdmin) await supabase.from("pubg_accounts").update({ luot_xem: (data.luot_xem || 0) + 1 }).eq("id", data.id);
+        if (!currentUserIsAdmin) {
+          await supabase.from("pubg_accounts").update({ luot_xem: (data.luot_xem || 0) + 1 }).eq("id", data.id);
+        }
       }
       setLoading(false);
     };
@@ -67,7 +77,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [accountId, isAdmin]);
+  }, [accountId]);
 
   const scrollToTop = () => {
     const startPosition = window.scrollY;
@@ -92,10 +102,27 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
     requestAnimationFrame(animation);
   };
 
-  // =====================================================================================
-  // 🚀 GIAO DIỆN LOADING HOLOGAM 3D TRANG CHI TIẾT (ĐÃ FIX LỖI)
-  // =====================================================================================
-  if (loading) {
+  const handleDeleteAcc = async () => {
+    if (!acc) return;
+
+    const isConfirm = window.confirm(`CẢNH BÁO BOSS!\nBạn có chắc chắn muốn XÓA VĨNH VIỄN Acc mã: ${acc.ma_acc} không?\nHành động này không thể khôi phục!`);
+
+    if (isConfirm) {
+      setIsDeleting(true);
+      try {
+        const { error } = await supabase.from('pubg_accounts').delete().eq('id', acc.id);
+        if (error) throw error;
+
+        alert('Đã xóa Acc thành công! Đang quay về trang chủ...');
+        router.push('/');
+      } catch (error: any) {
+        alert("Lỗi khi xóa: " + error.message);
+        setIsDeleting(false);
+      }
+    }
+  };
+
+  if (loading || isDeleting) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#050508] w-full transition-colors duration-500 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,168,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,168,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
@@ -106,15 +133,12 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         <div className="absolute bottom-10 right-10 w-16 h-16 border-b-2 border-r-2 border-[#00a8ff]/40 rounded-br-lg backdrop-blur-sm"></div>
 
         <div className="relative flex flex-col items-center justify-center w-full z-10">
-
-          {/* 1. LỚP RADAR PHÍA SAU (-Z-10) */}
           <div className="absolute top-[40%] md:top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center -z-10 opacity-70">
             <div className="absolute w-[320px] md:w-[450px] h-[320px] md:h-[450px] border-[2px] border-dashed border-[#00a8ff]/40 rounded-full animate-[spin_10s_linear_infinite]"></div>
             <div className="absolute w-[240px] md:w-[350px] h-[240px] md:h-[350px] border-[3px] border-l-transparent border-r-transparent border-t-[#00a8ff] border-b-[#ff3838] rounded-full animate-[spin_4s_linear_infinite_reverse] shadow-[0_0_15px_rgba(0,168,255,0.5)]"></div>
             <div className="absolute w-[180px] h-[180px] bg-[#00a8ff]/10 blur-[50px] rounded-full"></div>
           </div>
 
-          {/* 2. LỚP NHÂN VẬT CHÍNH (Z-10) */}
           <div className="relative z-10 animate-[pulse_4s_ease-in-out_infinite_alternating]">
             <img
               src="/pubg-team.png"
@@ -124,17 +148,15 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
             />
           </div>
 
-          {/* 3. LỚP ĐẾ MẶT ĐẤT PROJECTOR BASE (Z-20) */}
           <div className="relative flex items-center justify-center perspective-[800px] z-20 -mt-6 md:-mt-8">
             <div className="absolute w-[280px] md:w-[400px] h-[60px] md:h-[80px] border-[2px] border-[#00a8ff] rounded-[50%] animate-[spin_5s_linear_infinite] shadow-[0_0_20px_rgba(0,168,255,0.6)]" style={{ transform: 'rotateX(75deg)' }}></div>
             <div className="absolute w-[220px] md:w-[300px] h-[40px] md:h-[50px] border-2 border-dashed border-[#00d8ff] rounded-[50%] animate-[spin_3s_linear_infinite_reverse]" style={{ transform: 'rotateX(75deg)' }}></div>
             <div className="absolute w-24 h-6 bg-white/50 rounded-[50%] blur-[12px] animate-pulse shadow-[0_0_30px_rgba(0,168,255,1)]"></div>
           </div>
 
-          {/* 4. TEXT & THANH LOADING (ĐÃ KÉO LÊN CAO) */}
           <div className="relative z-30 flex flex-col items-center gap-4 mt-12 md:mt-16">
             <h2 className="text-lg md:text-xl font-bold tracking-widest text-[#00d8ff] animate-pulse drop-shadow-[0_0_10px_rgba(0,216,255,0.8)] uppercase">
-              Đang tải Acc...
+              {isDeleting ? "Đang bay màu Acc..." : "Đang tải Acc..."}
             </h2>
             <div className="w-56 md:w-64 h-1 bg-gray-800 rounded-full overflow-hidden shadow-[inset_0_0_5px_rgba(0,0,0,1)] relative">
               <div className="absolute top-0 left-0 h-full w-full bg-[#00a8ff] animate-pulse shadow-[0_0_15px_rgba(0,168,255,1)]"></div>
@@ -144,11 +166,11 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
       </div>
     );
   }
-  // =====================================================================================
 
   if (!acc) return null;
 
-  const priceInMillions = acc.gia_ban ? (acc.gia_ban / 1000000).toFixed(0) : 0;
+  // SỬA LỖI LÀM TRÒN SỐ Ở ĐÂY
+  const priceInMillions = acc.gia_ban ? Number((acc.gia_ban / 1000000).toFixed(2)) : 0;
   const allImages = [acc.anh_bia, ...(acc.anh_chi_tiet || [])].filter(Boolean);
 
   const handleMucNgay = () => {
@@ -186,9 +208,24 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
                 <span className="flex items-center gap-1.5 text-gray-500 dark:text-zinc-400 text-sm"><Eye className="w-4 h-4" /> {acc.luot_xem || 0} views</span>
               </div>
             </div>
-            <div className="flex flex-col items-end">
-              <p className="text-sm text-gray-500 dark:text-zinc-400 mb-1 font-medium">Giá Bán:</p>
-              <div className="text-4xl font-bold text-red-500 tracking-tight">{priceInMillions}<span className="text-3xl">m</span></div>
+
+            <div className="flex flex-col items-end gap-3">
+              <div className="flex flex-col items-end">
+                <p className="text-sm text-gray-500 dark:text-zinc-400 mb-1 font-medium">Giá Bán:</p>
+                <div className="text-4xl font-bold text-red-500 tracking-tight">{priceInMillions}<span className="text-3xl">m</span></div>
+              </div>
+
+              {isAdmin && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Link href={`/admin?edit=${acc.id}`} className="flex items-center gap-1.5 px-4 py-2 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-500 rounded-lg text-sm font-bold hover:bg-yellow-200 transition-colors">
+                    <Pencil className="w-4 h-4" /> Sửa Acc
+                  </Link>
+                  <button onClick={handleDeleteAcc} className="flex items-center gap-1.5 px-4 py-2 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-500 rounded-lg text-sm font-bold hover:bg-red-200 transition-colors">
+                    <Trash2 className="w-4 h-4" /> Xóa
+                  </button>
+                </div>
+              )}
+
             </div>
           </div>
 

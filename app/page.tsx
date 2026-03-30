@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { UserCircle, Eye, Copy, Clock, Search, MessageCircle, Crown, Flame, ArrowUp, ArrowDownUp, Check, ChevronsUpDown, Info, ShoppingCart, Key } from "lucide-react";
+import { UserCircle, Eye, Copy, Clock, Search, MessageCircle, Crown, Flame, ArrowUp, ArrowDownUp, Check, ChevronsUpDown, Info, ShoppingCart, Key, Shield, LogOut } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
 
@@ -57,6 +57,11 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   let filteredAccounts = accounts.filter(acc => {
     const matchSearch = (acc.ma_acc && acc.ma_acc.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (acc.tieu_de && acc.tieu_de.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -109,32 +114,23 @@ export default function Home() {
     requestAnimationFrame(animation);
   };
 
-  // =====================================================================================
-  // 🚀 GIAO DIỆN LOADING HOLOGAM 3D (ĐÃ FIX LỖI FONT, ÉP Z-INDEX & KÉO CHỮ LÊN CAO)
-  // =====================================================================================
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#050508] w-full transition-colors duration-500 relative overflow-hidden">
-        {/* Lưới nền Tech Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,168,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,168,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
-        {/* 4 Góc UI HUD */}
         <div className="absolute top-10 left-10 w-16 h-16 border-t-2 border-l-2 border-[#00a8ff]/40 rounded-tl-lg backdrop-blur-sm"></div>
         <div className="absolute top-10 right-10 w-16 h-16 border-t-2 border-r-2 border-[#00a8ff]/40 rounded-tr-lg backdrop-blur-sm"></div>
         <div className="absolute bottom-10 left-10 w-16 h-16 border-b-2 border-l-2 border-[#00a8ff]/40 rounded-bl-lg backdrop-blur-sm"></div>
         <div className="absolute bottom-10 right-10 w-16 h-16 border-b-2 border-r-2 border-[#00a8ff]/40 rounded-br-lg backdrop-blur-sm"></div>
 
-        {/* KHỐI TRUNG TÂM: RADAR -> NHÂN VẬT -> ĐẾ -> CHỮ */}
         <div className="relative flex flex-col items-center justify-center w-full z-10">
-
-          {/* 1. LỚP RADAR PHÍA SAU (-Z-10: Bắt buộc lùi ra sau) */}
           <div className="absolute top-[40%] md:top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center -z-10 opacity-70">
             <div className="absolute w-[320px] md:w-[450px] h-[320px] md:h-[450px] border-[2px] border-dashed border-[#00a8ff]/40 rounded-full animate-[spin_10s_linear_infinite]"></div>
             <div className="absolute w-[240px] md:w-[350px] h-[240px] md:h-[350px] border-[3px] border-l-transparent border-r-transparent border-t-[#00a8ff] border-b-[#ff3838] rounded-full animate-[spin_4s_linear_infinite_reverse] shadow-[0_0_15px_rgba(0,168,255,0.5)]"></div>
             <div className="absolute w-[180px] h-[180px] bg-[#00a8ff]/10 blur-[50px] rounded-full"></div>
           </div>
 
-          {/* 2. LỚP NHÂN VẬT CHÍNH (Z-10) */}
           <div className="relative z-10 animate-[pulse_4s_ease-in-out_infinite_alternating]">
             <img
               src="/pubg-team.png"
@@ -144,16 +140,13 @@ export default function Home() {
             />
           </div>
 
-          {/* 3. LỚP ĐẾ MẶT ĐẤT PROJECTOR BASE (Z-20: Nằm đè lên chân) */}
           <div className="relative flex items-center justify-center perspective-[800px] z-20 -mt-6 md:-mt-8">
             <div className="absolute w-[280px] md:w-[400px] h-[60px] md:h-[80px] border-[2px] border-[#00a8ff] rounded-[50%] animate-[spin_5s_linear_infinite] shadow-[0_0_20px_rgba(0,168,255,0.6)]" style={{ transform: 'rotateX(75deg)' }}></div>
             <div className="absolute w-[220px] md:w-[300px] h-[40px] md:h-[50px] border-2 border-dashed border-[#00d8ff] rounded-[50%] animate-[spin_3s_linear_infinite_reverse]" style={{ transform: 'rotateX(75deg)' }}></div>
             <div className="absolute w-24 h-6 bg-white/50 rounded-[50%] blur-[12px] animate-pulse shadow-[0_0_30px_rgba(0,168,255,1)]"></div>
           </div>
 
-          {/* 4. TEXT & THANH LOADING (Kéo dính sát lên trên) */}
           <div className="relative z-30 flex flex-col items-center gap-4 mt-12 md:mt-16">
-            {/* Đã đổi font-black thành font-bold, giảm tracking để không lỗi tiếng Việt */}
             <h2 className="text-lg md:text-xl font-bold tracking-widest text-[#00d8ff] animate-pulse drop-shadow-[0_0_10px_rgba(0,216,255,0.8)] uppercase">
               Đang tải dữ liệu...
             </h2>
@@ -161,13 +154,10 @@ export default function Home() {
               <div className="absolute top-0 left-0 h-full w-full bg-[#00a8ff] animate-pulse shadow-[0_0_15px_rgba(0,168,255,1)]"></div>
             </div>
           </div>
-
         </div>
-
       </div>
     );
   }
-  // =====================================================================================
 
   const filterButtons = [
     { id: "all", label: "Tất cả" },
@@ -196,8 +186,23 @@ export default function Home() {
             <Crown className="w-7 h-7 text-[#00a8ff] group-hover:scale-110 transition-transform" />
             <span className="font-extrabold text-2xl tracking-tighter text-gray-900 dark:text-white">The Van PUBG</span>
           </Link>
+
           <div className="flex items-center gap-3">
-            <UserCircle className="w-8 h-8 text-gray-400 dark:text-zinc-600 hover:text-[#00a8ff] transition-colors cursor-pointer" />
+            {isAdmin && (
+              <Link href="/admin" className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-[#00a8ff] hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded-full font-bold text-sm transition-all shadow-sm">
+                <Shield className="w-4 h-4" /> ADMIN
+              </Link>
+            )}
+
+            {user ? (
+              <button onClick={handleLogout} className="flex items-center gap-1.5 px-4 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 rounded-full font-bold text-sm transition-all shadow-sm" title="Đăng xuất">
+                <LogOut className="w-4 h-4" /> THOÁT
+              </button>
+            ) : (
+              <Link href="/login" title="Đăng nhập">
+                <UserCircle className="w-8 h-8 text-gray-400 dark:text-zinc-500 hover:text-[#00a8ff] dark:hover:text-[#00a8ff] transition-colors cursor-pointer" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -291,11 +296,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* DANH SÁCH ACC HIỂN THỊ */}
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAccounts.map((acc) => {
-              const priceInMillions = acc.gia_ban ? (acc.gia_ban / 1000000).toFixed(0) : 0;
+              // SỬA LỖI LÀM TRÒN SỐ Ở ĐÂY
+              const priceInMillions = acc.gia_ban ? Number((acc.gia_ban / 1000000).toFixed(2)) : 0;
+
               return (
                 <Link href={`/acc/${acc.ma_acc}`} key={acc.id} className="group">
                   <div className="bg-white dark:bg-[#121214] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-none border border-transparent dark:border-zinc-800 overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_20px_rgba(0,168,255,0.15)] transition-all duration-300">
