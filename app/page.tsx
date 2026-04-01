@@ -16,6 +16,7 @@ interface PubgAccount {
   anh_bia: string;
   luot_xem: number;
   noi_bat: boolean;
+  cho_thue: boolean;
   tags_do_hiem: string[];
   anh_chi_tiet: string[];
 }
@@ -30,6 +31,8 @@ export default function Home() {
   const [priceFilter, setPriceFilter] = useState("all");
   const [sortType, setSortType] = useState("newest");
   const [isSortOpen, setIsSortOpen] = useState(false);
+
+  const [tradeMode, setTradeMode] = useState<"buy" | "rent">("buy");
 
   const bossAdminEmail = "duynart3101@gmail.com";
   const isAdmin = user && user.email === bossAdminEmail;
@@ -66,6 +69,10 @@ export default function Home() {
     const matchSearch = (acc.ma_acc && acc.ma_acc.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (acc.tieu_de && acc.tieu_de.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    // Lọc theo chế độ Mua / Thuê
+    if (tradeMode === "rent" && !acc.cho_thue) return false;
+
+    // Luôn lấy giá trị thực (giá bán) làm mốc lọc để không bị ảo
     const priceM = acc.gia_ban ? acc.gia_ban / 1000000 : 0;
     let matchPrice = true;
     if (priceFilter === "under5") matchPrice = priceM < 5;
@@ -96,20 +103,14 @@ export default function Home() {
     const distance = -startPosition;
     const duration = 600;
     let start: number | null = null;
-
     const animation = (currentTime: number) => {
       if (start === null) start = currentTime;
       const timeElapsed = currentTime - start;
       const progress = Math.min(timeElapsed / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 4);
-
       window.scrollTo(0, startPosition + distance * ease);
-
-      if (timeElapsed < duration) {
-        requestAnimationFrame(animation);
-      } else {
-        window.scrollTo(0, 0);
-      }
+      if (timeElapsed < duration) requestAnimationFrame(animation);
+      else window.scrollTo(0, 0);
     };
     requestAnimationFrame(animation);
   };
@@ -118,38 +119,26 @@ export default function Home() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#050508] w-full transition-colors duration-500 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,168,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,168,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-
         <div className="absolute top-10 left-10 w-16 h-16 border-t-2 border-l-2 border-[#00a8ff]/40 rounded-tl-lg backdrop-blur-sm"></div>
         <div className="absolute top-10 right-10 w-16 h-16 border-t-2 border-r-2 border-[#00a8ff]/40 rounded-tr-lg backdrop-blur-sm"></div>
         <div className="absolute bottom-10 left-10 w-16 h-16 border-b-2 border-l-2 border-[#00a8ff]/40 rounded-bl-lg backdrop-blur-sm"></div>
         <div className="absolute bottom-10 right-10 w-16 h-16 border-b-2 border-r-2 border-[#00a8ff]/40 rounded-br-lg backdrop-blur-sm"></div>
-
         <div className="relative flex flex-col items-center justify-center w-full z-10">
           <div className="absolute top-[40%] md:top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center -z-10 opacity-70">
             <div className="absolute w-[320px] md:w-[450px] h-[320px] md:h-[450px] border-[2px] border-dashed border-[#00a8ff]/40 rounded-full animate-[spin_10s_linear_infinite]"></div>
             <div className="absolute w-[240px] md:w-[350px] h-[240px] md:h-[350px] border-[3px] border-l-transparent border-r-transparent border-t-[#00a8ff] border-b-[#ff3838] rounded-full animate-[spin_4s_linear_infinite_reverse] shadow-[0_0_15px_rgba(0,168,255,0.5)]"></div>
             <div className="absolute w-[180px] h-[180px] bg-[#00a8ff]/10 blur-[50px] rounded-full"></div>
           </div>
-
           <div className="relative z-10 animate-[pulse_4s_ease-in-out_infinite_alternating]">
-            <img
-              src="/pubg-team.png"
-              alt="PUBG Hologram"
-              className="w-[280px] md:w-[420px] h-auto object-contain drop-shadow-[0_0_20px_rgba(0,168,255,0.7)]"
-              onError={(e) => { e.currentTarget.src = 'https://i.imgur.com/L13UfE2.png' }}
-            />
+            <img src="/pubg-team.png" alt="PUBG Hologram" className="w-[280px] md:w-[420px] h-auto object-contain drop-shadow-[0_0_20px_rgba(0,168,255,0.7)]" onError={(e) => { e.currentTarget.src = 'https://i.imgur.com/L13UfE2.png' }} />
           </div>
-
           <div className="relative flex items-center justify-center perspective-[800px] z-20 -mt-6 md:-mt-8">
             <div className="absolute w-[280px] md:w-[400px] h-[60px] md:h-[80px] border-[2px] border-[#00a8ff] rounded-[50%] animate-[spin_5s_linear_infinite] shadow-[0_0_20px_rgba(0,168,255,0.6)]" style={{ transform: 'rotateX(75deg)' }}></div>
             <div className="absolute w-[220px] md:w-[300px] h-[40px] md:h-[50px] border-2 border-dashed border-[#00d8ff] rounded-[50%] animate-[spin_3s_linear_infinite_reverse]" style={{ transform: 'rotateX(75deg)' }}></div>
             <div className="absolute w-24 h-6 bg-white/50 rounded-[50%] blur-[12px] animate-pulse shadow-[0_0_30px_rgba(0,168,255,1)]"></div>
           </div>
-
           <div className="relative z-30 flex flex-col items-center gap-4 mt-12 md:mt-16">
-            <h2 className="text-lg md:text-xl font-bold tracking-widest text-[#00d8ff] animate-pulse drop-shadow-[0_0_10px_rgba(0,216,255,0.8)] uppercase">
-              Đang tải dữ liệu...
-            </h2>
+            <h2 className="text-lg md:text-xl font-bold tracking-widest text-[#00d8ff] animate-pulse drop-shadow-[0_0_10px_rgba(0,216,255,0.8)] uppercase">Đang tải dữ liệu...</h2>
             <div className="w-56 md:w-64 h-1 bg-gray-800 rounded-full overflow-hidden shadow-[inset_0_0_5px_rgba(0,0,0,1)] relative">
               <div className="absolute top-0 left-0 h-full w-full bg-[#00a8ff] animate-pulse shadow-[0_0_15px_rgba(0,168,255,1)]"></div>
             </div>
@@ -179,21 +168,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#0a0a0c] pb-20 transition-colors duration-500 relative">
-
       <div className="bg-white dark:bg-[#121214] shadow-sm sticky top-0 z-30 border-b border-gray-100 dark:border-zinc-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <Crown className="w-7 h-7 text-[#00a8ff] group-hover:scale-110 transition-transform" />
             <span className="font-extrabold text-2xl tracking-tighter text-gray-900 dark:text-white">The Van PUBG</span>
           </Link>
-
           <div className="flex items-center gap-3">
             {isAdmin && (
               <Link href="/admin" className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-[#00a8ff] hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded-full font-bold text-sm transition-all shadow-sm">
                 <Shield className="w-4 h-4" /> ADMIN
               </Link>
             )}
-
             {user ? (
               <button onClick={handleLogout} className="flex items-center gap-1.5 px-4 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 rounded-full font-bold text-sm transition-all shadow-sm" title="Đăng xuất">
                 <LogOut className="w-4 h-4" /> THOÁT
@@ -208,7 +194,6 @@ export default function Home() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-
         <div className="relative w-full py-6 rounded-2xl bg-[#00a8ff] text-white flex flex-col items-center justify-center shadow-lg hover:shadow-[0_10px_30px_rgba(0,168,255,0.4)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group overflow-hidden" onClick={() => window.open('https://zalo.me/0398938686', '_blank')}>
           <div className="absolute top-0 left-[-150%] w-[150%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-25deg] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out"></div>
           <div className="flex items-center gap-2 mb-1 z-10"><MessageCircle className="w-6 h-6 group-hover:animate-bounce" /><h3 className="text-xl font-bold">Hỗ trợ giao dịch 24/7 qua Zalo</h3></div>
@@ -228,20 +213,16 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-wide drop-shadow-sm">Danh sách Acc Bán</h2>
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-wide drop-shadow-sm">Danh sách Acc</h2>
                   <span className="flex items-center justify-center px-2.5 h-7 bg-[#00a8ff] text-white rounded-full text-xs font-bold shadow-[0_0_10px_rgba(0,168,255,0.4)]">{filteredAccounts.length}</span>
                 </div>
 
                 <div className="relative ml-0 lg:ml-2 z-50">
-                  <button
-                    onClick={() => setIsSortOpen(!isSortOpen)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-black/40 backdrop-blur-md border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-zinc-200 rounded-lg text-sm font-semibold hover:border-[#00a8ff] dark:hover:border-[#00a8ff] transition-all"
-                  >
+                  <button onClick={() => setIsSortOpen(!isSortOpen)} className="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-black/40 backdrop-blur-md border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-zinc-200 rounded-lg text-sm font-semibold hover:border-[#00a8ff] dark:hover:border-[#00a8ff] transition-all">
                     <currentSort.icon className="w-4 h-4 text-[#00a8ff]" />
                     <span>Sắp xếp: <span className="text-[#00a8ff]">{currentSort.label}</span></span>
                     <ChevronsUpDown className="w-3.5 h-3.5 text-gray-500" />
                   </button>
-
                   {isSortOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsSortOpen(false)}></div>
@@ -259,14 +240,17 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 w-full lg:w-auto">
-                <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-[#00a8ff] text-white text-sm font-bold rounded-xl shadow-[0_0_15px_rgba(0,168,255,0.4)] hover:shadow-[0_0_25px_rgba(0,168,255,0.6)] hover:-translate-y-0.5 transition-all uppercase tracking-wide">
+              {/* THANH TRƯỢT CHỌN MUA/THUÊ ACC */}
+              <div className="flex bg-gray-200/80 dark:bg-zinc-800/80 p-1.5 rounded-xl relative w-full lg:w-72 shadow-inner border border-gray-300/50 dark:border-zinc-700/50">
+                <div className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white dark:bg-[#1e1e20] rounded-lg shadow-md transition-all duration-300 ease-out ${tradeMode === 'rent' ? 'left-[calc(50%+3px)]' : 'left-1.5'}`}></div>
+                <button onClick={() => setTradeMode('buy')} className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold z-10 transition-colors ${tradeMode === 'buy' ? 'text-[#00a8ff]' : 'text-gray-600 dark:text-zinc-400'}`}>
                   <ShoppingCart className="w-4 h-4" /> Mua Acc
                 </button>
-                <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-gray-700 to-gray-600 dark:from-zinc-800 dark:to-zinc-700 text-white text-sm font-bold rounded-xl shadow-md border border-gray-500 dark:border-zinc-600 hover:border-gray-400 dark:hover:border-zinc-500 hover:-translate-y-0.5 transition-all uppercase tracking-wide">
+                <button onClick={() => setTradeMode('rent')} className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold z-10 transition-colors ${tradeMode === 'rent' ? 'text-[#00a8ff]' : 'text-gray-600 dark:text-zinc-400'}`}>
                   <Key className="w-4 h-4" /> Thuê Acc
                 </button>
               </div>
+
             </div>
 
             <div className="w-full relative pt-2 border-t border-gray-200/50 dark:border-zinc-800/50">
@@ -274,20 +258,9 @@ export default function Home() {
                 {filterButtons.map((btn) => {
                   const isActive = priceFilter === btn.id;
                   return (
-                    <button
-                      key={btn.id}
-                      onClick={() => setPriceFilter(btn.id)}
-                      className={`flex-shrink-0 relative px-6 py-2.5 rounded-xl text-sm font-bold border whitespace-nowrap transition-all duration-300
-                                    ${isActive
-                          ? 'bg-gradient-to-r from-[#008cff] to-[#00a8ff] border-transparent text-white shadow-[0_8px_20px_-6px_rgba(0,168,255,0.8)] scale-105'
-                          : 'bg-white/50 dark:bg-black/30 border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 hover:border-[#00a8ff] dark:hover:border-[#00a8ff] hover:-translate-y-0.5'}`}
-                    >
+                    <button key={btn.id} onClick={() => setPriceFilter(btn.id)} className={`flex-shrink-0 relative px-6 py-2.5 rounded-xl text-sm font-bold border whitespace-nowrap transition-all duration-300 ${isActive ? 'bg-gradient-to-r from-[#008cff] to-[#00a8ff] border-transparent text-white shadow-[0_8px_20px_-6px_rgba(0,168,255,0.8)] scale-105' : 'bg-white/50 dark:bg-black/30 border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 hover:border-[#00a8ff] dark:hover:border-[#00a8ff] hover:-translate-y-0.5'}`}>
                       {btn.label}
-                      {isActive && (
-                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#ff3838] rounded-full flex items-center justify-center border-2 border-white dark:border-[#121214] shadow-sm z-10">
-                          <Check className="w-3 h-3 text-white" strokeWidth={4} />
-                        </div>
-                      )}
+                      {isActive && <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#ff3838] rounded-full flex items-center justify-center border-2 border-white dark:border-[#121214] shadow-sm z-10"><Check className="w-3 h-3 text-white" strokeWidth={4} /></div>}
                     </button>
                   )
                 })}
@@ -299,13 +272,12 @@ export default function Home() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAccounts.map((acc) => {
-              // SỬA LỖI LÀM TRÒN SỐ Ở ĐÂY
-              const priceInMillions = acc.gia_ban ? Number((acc.gia_ban / 1000000).toFixed(2)) : 0;
+              // LUÔN HIỂN THỊ GIÁ TRỊ THỰC LÀ GIÁ BÁN Ở NGOÀI
+              const priceDisplay = acc.gia_ban ? `${Number((acc.gia_ban / 1000000).toFixed(2))}m` : "Liên hệ";
 
               return (
                 <Link href={`/acc/${acc.ma_acc}`} key={acc.id} className="group">
                   <div className="bg-white dark:bg-[#121214] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-none border border-transparent dark:border-zinc-800 overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_20px_rgba(0,168,255,0.15)] transition-all duration-300">
-
                     <div className="relative w-full overflow-hidden bg-gray-100 dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 transition-colors duration-500 flex items-center justify-center">
                       {acc.anh_bia ? (
                         <img src={acc.anh_bia} alt={`Mã: ${acc.ma_acc}`} className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500" />
@@ -333,7 +305,7 @@ export default function Home() {
                       <div className="h-px w-full bg-gray-100 dark:bg-zinc-800 transition-colors duration-500"></div>
                       <div className="flex justify-between items-center">
                         <div className="text-gray-500 dark:text-zinc-400 text-sm font-medium transition-colors duration-500">
-                          Giá: <span className="text-[#ff3838] font-extrabold text-xl ml-1">{priceInMillions}m</span>
+                          Giá trị Acc: <span className="text-[#ff3838] font-extrabold text-xl ml-1">{priceDisplay}</span>
                         </div>
                         <div className="bg-[#f0f2f5] dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 px-4 py-1.5 rounded-md text-xs font-bold transition-colors duration-500 group-hover:bg-[#00a8ff] group-hover:text-white dark:group-hover:bg-[#00a8ff] shadow-sm">CHI TIẾT</div>
                       </div>
@@ -357,7 +329,6 @@ export default function Home() {
       <button onClick={scrollToTop} className={`fixed bottom-6 right-6 p-4 bg-[#00a8ff] hover:bg-blue-600 text-white rounded-full shadow-[0_0_20px_rgba(0,168,255,0.4)] backdrop-blur-sm transition-all duration-500 z-50 group ${showTopBtn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
         <ArrowUp className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
       </button>
-
     </div>
   );
 }

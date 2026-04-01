@@ -18,6 +18,7 @@ interface PubgAccount {
   anh_bia: string;
   luot_xem: number;
   noi_bat: boolean;
+  cho_thue: boolean;
   tags_do_hiem: string[];
   anh_chi_tiet: string[];
 }
@@ -169,12 +170,11 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
 
   if (!acc) return null;
 
-  // SỬA LỖI LÀM TRÒN SỐ Ở ĐÂY
   const priceInMillions = acc.gia_ban ? Number((acc.gia_ban / 1000000).toFixed(2)) : 0;
   const allImages = [acc.anh_bia, ...(acc.anh_chi_tiet || [])].filter(Boolean);
 
   const handleMucNgay = () => {
-    navigator.clipboard.writeText(`Mã số ${acc.ma_acc} giá ${priceInMillions}m - ${window.location.href}`);
+    navigator.clipboard.writeText(`Mã số ${acc.ma_acc} giá trị ${priceInMillions}m - ${window.location.href}`);
     window.open('https://zalo.me/0398938686', '_blank');
   };
 
@@ -211,12 +211,20 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="flex flex-col items-end gap-3">
               <div className="flex flex-col items-end">
-                <p className="text-sm text-gray-500 dark:text-zinc-400 mb-1 font-medium">Giá Bán:</p>
+                <p className="text-sm text-gray-500 dark:text-zinc-400 mb-1 font-medium">Giá trị Acc:</p>
                 <div className="text-4xl font-bold text-red-500 tracking-tight">{priceInMillions}<span className="text-3xl">m</span></div>
               </div>
 
+              {/* BỔ SUNG HIỂN THỊ GIÁ THUÊ NẾU ACC NÀY CHO THUÊ */}
+              {acc.cho_thue && acc.gia_thue_ngay && (
+                <div className="flex flex-col items-end border-t border-gray-100 dark:border-zinc-800 pt-3 w-full">
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 mb-1 font-medium">Giá Thuê:</p>
+                  <div className="text-3xl font-bold text-[#00a8ff] tracking-tight">{(acc.gia_thue_ngay / 1000).toFixed(0)}<span className="text-xl text-gray-500 dark:text-zinc-500">k/ngày</span></div>
+                </div>
+              )}
+
               {isAdmin && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 w-full justify-end border-t border-gray-100 dark:border-zinc-800 pt-3">
                   <Link href={`/admin?edit=${acc.id}`} className="flex items-center gap-1.5 px-4 py-2 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-500 rounded-lg text-sm font-bold hover:bg-yellow-200 transition-colors">
                     <Pencil className="w-4 h-4" /> Sửa Acc
                   </Link>

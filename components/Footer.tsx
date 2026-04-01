@@ -1,6 +1,6 @@
 // components/Footer.tsx
 import Link from "next/link";
-import { Crown, Phone, Mail, ShieldCheck, Facebook, Youtube, Clock } from "lucide-react";
+import { Crown, Phone, Mail, ShieldCheck, Facebook, Clock } from "lucide-react";
 
 export default function Footer() {
     return (
@@ -20,22 +20,25 @@ export default function Footer() {
                             Hệ thống giao dịch tài khoản PUBG Mobile uy tín, tự động và an toàn số 1 Việt Nam. Chúng tôi cam kết mang lại trải nghiệm tuyệt vời nhất cho cộng đồng game thủ.
                         </p>
                         <div className="flex items-center gap-4 pt-2">
-                            <a href="#" className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-[#00a8ff] hover:bg-blue-600 hover:text-white dark:hover:bg-[#00a8ff] transition-all shadow-sm">
-                                <Facebook className="w-5 h-5" />
+                            {/* Nút Facebook */}
+                            <a href="https://www.facebook.com/thevan2512" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-[#00a8ff] hover:bg-blue-600 hover:text-white dark:hover:bg-[#00a8ff] transition-all shadow-sm group">
+                                <Facebook className="w-5 h-5 group-hover:scale-110 transition-transform" />
                             </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 transition-all shadow-sm">
-                                <Youtube className="w-5 h-5" />
+                            {/* Nút Zalo (Đã thay Youtube) */}
+                            <a href="https://zalo.me/0398938686" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500 dark:text-blue-400 hover:bg-blue-500 hover:text-white dark:hover:bg-blue-500 transition-all shadow-sm group">
+                                <span className="font-bold text-[13px] group-hover:scale-110 transition-transform">Zalo</span>
                             </a>
                         </div>
                     </div>
 
-                    {/* Cột 2: Thông tin liên hệ */}
+                    {/* Cột 2: Thông liên hệ */}
                     <div className="space-y-5">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider">Liên Hệ Hỗ Trợ</h3>
                         <ul className="space-y-4 text-sm text-gray-600 dark:text-zinc-400 font-medium">
                             <li className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-lg text-[#00a8ff]"><Phone className="w-4 h-4" /></div>
-                                <span>Zalo/Hotline: <strong className="text-[#ff3838] text-base ml-1">0398.93.86.86</strong></span>
+                                {/* Số ĐT đã format */}
+                                <span>Zalo/Hotline: <strong className="text-[#ff3838] text-base ml-1">039.893.8686</strong></span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-lg text-[#00a8ff]"><Mail className="w-4 h-4" /></div>
